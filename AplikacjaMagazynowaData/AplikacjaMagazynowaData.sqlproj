@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{7f45d6ce-5a6b-45a2-bdc8-20cc574c23b3}</ProjectGuid>
-    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
     </RootPath>
@@ -60,5 +60,14 @@
     <Folder Include="dbo\StoredProcedures" />
     <Folder Include="dbo\Tables" />
     <Folder Include="PublishLocations" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="dbo\Tables\Product.sql" />
+    <Build Include="dbo\Tables\Shipment.sql" />
+    <Build Include="dbo\Tables\Order.sql" />
+    <Build Include="dbo\Tables\OrderDetail.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PublishLocations\AplikacjaMagazynowaData.publish.xml" />
   </ItemGroup>
 </Project>
