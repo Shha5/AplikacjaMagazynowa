@@ -23,11 +23,11 @@ namespace DataAccessLibrary.SqlAccess
             }
         }
 
-        public async Task<int> SaveData<T>(string storedProcedure, T parameters, string connectionString = "AppDataDbConnection")
+        public async Task SaveData<T>(string storedProcedure, T parameters, string connectionString = "AppDataDbConnection")
         {
             using (IDbConnection connection = new SqlConnection(_config.GetConnectionString(connectionString)))
             {
-               return await connection.ExecuteAsync(storedProcedure, parameters,
+                await connection.ExecuteAsync(storedProcedure, parameters,
                 commandType: CommandType.StoredProcedure);
             }
             

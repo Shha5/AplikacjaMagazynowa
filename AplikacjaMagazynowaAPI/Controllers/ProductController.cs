@@ -32,16 +32,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
                 QuantityInStock = product.QuantityInStock,
             };
 
-            int result = await _productData.CreateProduct(productData);
-            if (result == -1)
-            {
-                return BadRequest("Produkt istnieje w bazie. Dodaj dostawę, żeby zwiększyć ilość towaru w magazynie.");
-            }
-            if (result != 0 && result != -1)
-            {
-                return StatusCode(500, "Wystąpił nieoczekiwany błąd. Ponów próbę później.");
-            }
-           
+            await _productData.CreateProduct(productData);
             return Ok();
         }
 
