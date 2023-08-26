@@ -66,6 +66,7 @@
     <Build Include="dbo\Tables\Shipment.sql" />
     <Build Include="dbo\Tables\Order.sql" />
     <Build Include="dbo\Tables\OrderDetail.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Product_Create.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PublishLocations\AplikacjaMagazynowaData.publish.xml" />
