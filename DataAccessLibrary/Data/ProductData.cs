@@ -18,8 +18,11 @@ namespace DataAccessLibrary.Data
             _dbAccess = dbAccess;
         }
 
-        public Task CreateProduct(ProductDataModel product) =>
-            _dbAccess.SaveData("sp_Product_Create", new { product.ProductCode, product.ProductName, product.QuantityInStock });
+        public async Task<int> CreateProduct(ProductDataModel product)
+        {
+            return await _dbAccess.SaveData("sp_Product_Create", new { product.ProductCode, product.ProductName, product.QuantityInStock });
+        }
+         
         
     }
 }

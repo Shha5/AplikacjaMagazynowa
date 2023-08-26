@@ -4,6 +4,6 @@ namespace DataAccessLibrary.Data.Interfaces
 {
     public interface IProductData
     {
-        Task CreateProduct(ProductDataModel product);
+        Task<int> CreateProduct(ProductDataModel product);
     }
 }
