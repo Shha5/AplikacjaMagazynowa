@@ -20,7 +20,14 @@ namespace DataAccessLibrary.Data
 
         public Task CreateProduct(ProductDataModel product) =>
              _dbAccess.SaveData("sp_Product_Create", new { product.ProductCode, product.ProductName, product.QuantityInStock });
-        
-        
+
+        public async Task<IEnumerable<ProductDataModel>> GetAllProducts()
+        {
+            var result = await _dbAccess.LoadData<ProductDataModel, dynamic>("sp_Product_GetAll", null);
+            return result;
+        }
+
+        public Task AddProductShipment(ShipmentDataModel shipment) =>
+            _dbAccess.SaveData("sp_Shipment_Product_AddProductShipment", new { shipment.ProductCode, shipment.Quantity });
     }
 }
