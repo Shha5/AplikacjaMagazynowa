@@ -12,5 +12,7 @@ namespace DataAccessLibrary.Models
         public string ProductCode { get; set; }
         public string ProductName { get; set; }
         public int QuantityInStock { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime LastModifiedDate { get; set;} = DateTime.UtcNow;
     }
 }
