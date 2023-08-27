@@ -1,4 +1,8 @@
-﻿using AplikacjaMagazynowaAPI.Models;
+﻿using AplikacjaMagazynowaAPI.Constants;
+using AplikacjaMagazynowaAPI.Models.InputModels;
+using AplikacjaMagazynowaAPI.Models.OutputModels;
+using AplikacjaMagazynowaAPI.Services;
+using AplikacjaMagazynowaAPI.Services.Interfaces;
 using DataAccessLibrary.Data.Interfaces;
 using DataAccessLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,74 +13,60 @@ namespace AplikacjaMagazynowaAPI.Controllers
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
-        private readonly IProductData _productData;
+        private readonly IInventoryService _inventoryService;
 
-        public ProductController(IProductData productData)
+        public ProductController(IInventoryService inventoryService)
         {
-            _productData = productData;
+            _inventoryService = inventoryService;
         }
 
         // DODAWANIE NOWEGO TOWARU
         [HttpPost]
-        [Route("CreateProduct")]
-        public async Task<IActionResult> CreateProduct(ProductModel product)
+        [Route("nowy-produkt")]
+        public async Task<IActionResult> CreateNewProduct(ProductInputModel product)
         {
             if (ModelState.IsValid != true)
             {
-                return BadRequest("Dane są niekompletne.");
+                return BadRequest(ErrorMessages.DataIncomplete);
             }
-            ProductDataModel productData = new ProductDataModel()
+            var result = await _inventoryService.SaveNewProduct(product);
+            if (result.Success != true)
             {
-                ProductCode = product.ProductCode,
-                ProductName = product.ProductName,
-                QuantityInStock = product.QuantityInStock,
-            };
-
-            await _productData.CreateProduct(productData);
+                return BadRequest(result.Error);
+            }
             return Ok();
         }
 
         // ZWIĘKSZENIE LICZBY DOSTĘPNYCH SZTUK TOWARU ISTNIEJĄCEGO W BAZIE
         [HttpPost]
-        [Route("AddProductShipment")]
-        public async Task<IActionResult> AddProductShipment(ShipmentModel shipment)
+        [Route("nowa-dostawa")]
+        public async Task<IActionResult> CreateNewProductShipment(ShipmentInputModel shipment)
         {
             if (ModelState.IsValid != true) 
             {
-                return BadRequest("Dane są niekompletne.");
+                return BadRequest(ErrorMessages.DataIncomplete);
             }
-            ShipmentDataModel shipmentData = new ShipmentDataModel()
+            var result = await _inventoryService.SaveNewProductShipment(shipment);
+            if (result.Success != true)
             {
-                ProductCode = shipment.ProductCode,
-                Quantity = shipment.Quantity
-            };
-
-            await _productData.AddProductShipment(shipmentData);
+                return BadRequest(result.Error);
+            }
             return Ok();
         }
 
         // PRZEGLĄD WSZYSTKICH PRODUKTÓW DOSTĘPNYCH W BAZIE
         [HttpGet]
-        [Route("GetAllProducts")]
+        [Route("wszystkie-produkty")]
         public async Task<IActionResult> GetAllProducts()
         {
-            List<ProductModel> products = new List<ProductModel>();
-            var result = await _productData.GetAllProducts();
-            if (result.Count() == 0)
+            var products = await _inventoryService.GetAllProducts();
+            if (products == null)
             {
                 return StatusCode(500);
             }
-            foreach (var product in result)
+            if (products.Count == 0 ) 
             {
-                products.Add(new ProductModel
-                {
-                    Id = product.Id,
-                    ProductCode = product.ProductCode,
-                    ProductName = product.ProductName,
-                    QuantityInStock = product.QuantityInStock,
-                    CreatedDate = product.CreatedDate,
-                    LastModifiedDate = product.LastModifiedDate
-                });
+                return NoContent();
             }
             return Ok(products);
         }

@@ -1,12 +1,7 @@
 ﻿using DataAccessLibrary.Data.Interfaces;
 using DataAccessLibrary.Models;
-using DataAccessLibrary.SqlAccess;
 using DataAccessLibrary.SqlAccess.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace DataAccessLibrary.Data
 {
@@ -18,8 +13,11 @@ namespace DataAccessLibrary.Data
             _dbAccess = dbAccess;
         }
 
-        public Task CreateProduct(ProductDataModel product) =>
-             _dbAccess.SaveData("sp_Product_Create", new { product.ProductCode, product.ProductName, product.QuantityInStock });
+        public Task InsertProduct(ProductDataModel product) =>
+            _dbAccess.SaveData("sp_Product_Insert", new { product.ProductCode, product.ProductName, product.QuantityInStock });
+
+        public Task InsertProductShipment(ShipmentDataModel shipment) =>
+            _dbAccess.SaveData("sp_Shipment_InsertProductShipment", new { shipment.ProductCode, shipment.Quantity });
 
         public async Task<IEnumerable<ProductDataModel>> GetAllProducts()
         {
@@ -27,7 +25,10 @@ namespace DataAccessLibrary.Data
             return result;
         }
 
-        public Task AddProductShipment(ShipmentDataModel shipment) =>
-            _dbAccess.SaveData("sp_Shipment_Product_AddProductShipment", new { shipment.ProductCode, shipment.Quantity });
+        public async Task<ProductAvailabilityDataModel> GetProductDetailsByProductCode(string productCode)
+        {
+            var result = await _dbAccess.LoadData<ProductAvailabilityDataModel, dynamic>("sp_Product_GetProductDetailsByProductCode", new { productCode });
+            return result.FirstOrDefault();
+        }
     }
 }
