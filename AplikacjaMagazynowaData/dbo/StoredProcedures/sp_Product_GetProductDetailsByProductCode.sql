@@ -3,7 +3,7 @@
 
 AS 
 BEGIN
-SET NOCOUNT ON
+	SET NOCOUNT ON
 	SELECT [Product].[Id], [Product].[QuantityInStock]
 	FROM [Product]
 	WHERE [Product].[ProductCode] = @ProductCode

@@ -1,4 +1,5 @@
-﻿using AplikacjaMagazynowaAPI.Models;
+﻿using AplikacjaMagazynowaAPI.Constants;
+using AplikacjaMagazynowaAPI.Models;
 using AplikacjaMagazynowaAPI.Models.InputModels;
 using AplikacjaMagazynowaAPI.Models.OutputModels;
 using AplikacjaMagazynowaAPI.Services.Interfaces;
@@ -11,26 +12,98 @@ namespace AplikacjaMagazynowaAPI.Services
     {
         private readonly IProductData _productData;
         private readonly IOrderData _orderData;
-
         public OrderService(IProductData productData, IOrderData orderData)
         {
             _productData = productData;
             _orderData = orderData;
         }
 
+        public async Task<OrderResultModel> DeleteOrderItem(string orderNumber, string productCode)
+        {
+            var orderItem = await _orderData.GetOrderItemByOrderNumberAndProductCode(orderNumber, productCode);
+            if (orderItem == null)
+            {
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.OrderItemDoesNotExist
+                };
+            }
+            if (orderItem.ItemCompleted == true)
+            {
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.CannotEditComplete
+                };
+            }
+            await _orderData.DeleteOrderItem(orderItem);
+            return new OrderResultModel()
+            {
+                Success = true
+            };
+        }
+
+        public async Task<OrderResultModel> EditOrderItem(EditOrderItemInputModel orderItemEdit)
+        {
+            var orderItem = await _orderData.GetOrderItemByOrderNumberAndProductCode(orderItemEdit.OrderNumber, orderItemEdit.ProductCode);
+
+            if (orderItem == null)
+            {
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.OrderItemDoesNotExist
+                };
+            }
+            if (orderItem.ItemCompleted == true)
+            {
+                return new OrderResultModel
+                {
+                    Success = false,
+                    Error = ErrorMessages.CannotEditComplete
+                };
+            }
+            if (orderItem.Quantity == orderItemEdit.NewQuantity)
+            {
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.NoChangeInData
+                };
+            }
+            var productData = await _productData.GetProductDetailsByProductId(orderItem.ProductId);
+            if ((productData.QuantityInStock + orderItem.Quantity) < orderItemEdit.NewQuantity)
+            {
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.ProductUnavailable
+                };
+            }
+            EditOrderItemDataModel orderItemEditData = new EditOrderItemDataModel()
+            {
+                Id = orderItem.Id,
+                ProductId = orderItem.ProductId,
+                OrderId = orderItem.OrderId,
+                NewQuantity = orderItemEdit.NewQuantity,
+                QuantityDifference = orderItem.Quantity - orderItemEdit.NewQuantity
+            };
+            await _orderData.EditOrderItem(orderItemEditData);
+            return new OrderResultModel()
+            {
+                Success = true
+            };
+        }
+
         public async Task<OrderOutputModel> GetOrderByOrderNumber(string orderNumber)
         {
             var orderData = await _orderData.GetOrderByOrderNumber(orderNumber);
-            List<OrderItemOutputModel> orderItems = new List<OrderItemOutputModel>();
-            foreach (var item in orderData.OrderItems)
+            if (orderData == null) 
             {
-                orderItems.Add(new OrderItemOutputModel()
-                {
-                    ProductCode = item.ProductCode,
-                    Quantity = item.Quantity,
-                    ItemCompleted = item.ItemCompleted,
-                });
+                return null;
             }
+            var orderItems = await GetOrderItems(orderData.Id);
             return new OrderOutputModel()
             {
                 OrderNumber = orderNumber,
@@ -40,30 +113,48 @@ namespace AplikacjaMagazynowaAPI.Services
             };
         }
 
-        public async Task MarkOrderItemComplete(string orderNumber, string productCode)
+        public async Task<OrderResultModel> MarkOrderItemComplete(string orderNumber, string productCode)
         {
+            if (await _orderData.GetOrderItemByOrderNumberAndProductCode(orderNumber, productCode) == null)
+            {
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.OrderItemDoesNotExist
+                };
+            }
             await _orderData.MarkOrderItemComplete(orderNumber, productCode);
+            return new OrderResultModel()
+            {
+                Success = true
+            };
         }
 
-        public async Task<OrderResultModel> SaveOrder(List<OrderItemInputModel> orderItems)
+        public async Task<OrderResultModel> SaveOrder(OrderInputModel order)
         {
-            var productAvailability = await CheckProductsAvailability(orderItems);
+            var productAvailability = await CheckProductsAvailability(order.Items);
             if (productAvailability.Any(p => p.IsAvailable == false))
             {
                 return new OrderResultModel()
                 {
                     Success = false,
-                    Errors = new List<string>()
-                    {
-                        "Jeden lub więcej produktów z Twojego zamówienia nie jest dostępny w żądanej ilości lub nie istnieje w bazie."
-                    }
+                    Error = ErrorMessages.ProductUnavailable
                 };
             }
             string orderSignature = await AssignOrderSignature();
             string orderNumber = Guid.NewGuid().ToString();
             await _orderData.InsertOrder(new OrderDataModel { OrderSignature = orderSignature, OrderNumber = orderNumber });
             int orderId = await _orderData.GetOrderIdByOrderNumber(orderNumber);
-            await SaveOrderItems(orderItems, orderId);
+            await SaveOrderItems(order.Items, orderId);
+            if (await GetOrderItems(orderId) == null)
+            {
+                await _orderData.DeleteOrder(orderId);
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.UnexpectedServerError
+                };
+            }
             return new OrderResultModel()
             {
                 Success = true,
@@ -118,7 +209,26 @@ namespace AplikacjaMagazynowaAPI.Services
             }
             return result;
         }
- 
+
+        private async Task<List<OrderItemOutputModel>> GetOrderItems(int orderId)
+        {
+            var orderItemData = await _orderData.GetOrderItemsByOrderId(orderId);
+            List<OrderItemOutputModel> orderItems = new List<OrderItemOutputModel>();
+            foreach (var item in orderItemData)
+            {
+                var product = await _productData.GetProductDetailsByProductId(item.ProductId);
+                orderItems.Add(new OrderItemOutputModel()
+                {
+                    ProductCode = product.ProductCode,
+                    ProductName = product.ProductName,
+                    Quantity = item.Quantity,
+                    ItemCompleted = item.ItemCompleted
+
+                });
+            }
+            return orderItems;
+        }
+       
         private async Task SaveOrderItems(List<OrderItemInputModel> orderItems, int orderId)
         {
             foreach (var item in orderItems)
@@ -130,7 +240,6 @@ namespace AplikacjaMagazynowaAPI.Services
                     Quantity = item.Quantity,
                 });
             }
-        }
-        
+        }   
     }
 }

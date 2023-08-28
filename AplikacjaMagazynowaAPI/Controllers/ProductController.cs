@@ -20,7 +20,6 @@ namespace AplikacjaMagazynowaAPI.Controllers
             _inventoryService = inventoryService;
         }
 
-        // DODAWANIE NOWEGO TOWARU
         [HttpPost]
         [Route("nowy-produkt")]
         public async Task<IActionResult> CreateNewProduct(ProductInputModel product)
@@ -37,7 +36,6 @@ namespace AplikacjaMagazynowaAPI.Controllers
             return Ok();
         }
 
-        // ZWIĘKSZENIE LICZBY DOSTĘPNYCH SZTUK TOWARU ISTNIEJĄCEGO W BAZIE
         [HttpPost]
         [Route("nowa-dostawa")]
         public async Task<IActionResult> CreateNewProductShipment(ShipmentInputModel shipment)
@@ -54,7 +52,6 @@ namespace AplikacjaMagazynowaAPI.Controllers
             return Ok();
         }
 
-        // PRZEGLĄD WSZYSTKICH PRODUKTÓW DOSTĘPNYCH W BAZIE
         [HttpGet]
         [Route("wszystkie-produkty")]
         public async Task<IActionResult> GetAllProducts()

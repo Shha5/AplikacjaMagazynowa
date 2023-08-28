@@ -18,6 +18,28 @@ namespace AplikacjaMagazynowaAPI.Services
             _productData = productData;
         }
 
+        public async Task<List<ProductOutputModel>> GetAllProducts()
+        {
+            List<ProductOutputModel> products = new List<ProductOutputModel>();
+            var result = await _productData.GetAllProducts();
+            if (result != null)
+            {
+                foreach (var product in result)
+                {
+                    products.Add(new ProductOutputModel
+                    {
+                        Id = product.Id,
+                        ProductCode = product.ProductCode,
+                        ProductName = product.ProductName,
+                        QuantityInStock = product.QuantityInStock,
+                        CreatedDate = product.CreatedDate,
+                        LastModifiedDate = product.LastModifiedDate
+                    });
+                }
+            }
+            return products;
+        }
+
         public async Task<InventoryResultModel> SaveNewProduct(ProductInputModel product)
         {
             if (product.QuantityInStock < 0)
@@ -25,7 +47,7 @@ namespace AplikacjaMagazynowaAPI.Services
                 return new InventoryResultModel()
                 {
                     Success = false,
-                    Error = ErrorMessages.QuantityLessThanZero
+                    Error = ErrorMessages.BadQuantity
                 };
             }
             ProductDataModel productData = new ProductDataModel()
@@ -56,7 +78,7 @@ namespace AplikacjaMagazynowaAPI.Services
                 return new InventoryResultModel()
                 {
                     Success = false,
-                    Error = ErrorMessages.QuantityLessOrZero
+                    Error = ErrorMessages.BadQuantity
                 };
             }
             if (await CheckIfProductExists(shipment.ProductCode) == false)
@@ -64,7 +86,7 @@ namespace AplikacjaMagazynowaAPI.Services
                 return new InventoryResultModel()
                 {
                     Success = false,
-                    Error = ErrorMessages.ProductDoesNotExist
+                    Error = ErrorMessages.ProductUnavailable
                 };
             }
             ShipmentDataModel shipmentData = new ShipmentDataModel()
@@ -79,28 +101,6 @@ namespace AplikacjaMagazynowaAPI.Services
             };
         }
 
-        public async Task<List<ProductOutputModel>> GetAllProducts()
-        {
-            List<ProductOutputModel> products = new List<ProductOutputModel>();
-            var result = await _productData.GetAllProducts();
-            if (result != null)
-            {
-                foreach (var product in result)
-                {
-                    products.Add(new ProductOutputModel
-                    {
-                        Id = product.Id,
-                        ProductCode = product.ProductCode,
-                        ProductName = product.ProductName,
-                        QuantityInStock = product.QuantityInStock,
-                        CreatedDate = product.CreatedDate,
-                        LastModifiedDate = product.LastModifiedDate
-                    });
-                }
-            }
-            return products;
-        }
-       
         private async Task<bool> CheckIfProductExists(string productCode)
         {
             var productDetails = await _productData.GetProductDetailsByProductCode(productCode);

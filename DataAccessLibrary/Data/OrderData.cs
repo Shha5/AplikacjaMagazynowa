@@ -1,4 +1,5 @@
 ﻿
+using Azure.Core;
 using DataAccessLibrary.Data.Interfaces;
 using DataAccessLibrary.Helpers.Interfaces;
 using DataAccessLibrary.Models;
@@ -17,8 +18,13 @@ namespace DataAccessLibrary.Data
             _dateTimeHelper = dateTimeHelper;
         }
 
-        public Task InsertOrder(OrderDataModel order) => _dbAccess.SaveData("sp_Order_Insert", new { order.OrderSignature, order.OrderNumber });
+        public Task DeleteOrder(int orderId) => _dbAccess.SaveData("sp_Order_Delete", new { orderId });
 
+        public Task DeleteOrderItem(OrderItemDataModel orderItem) => _dbAccess.SaveData("sp_OrderItem_DeleteOrderItem",
+            new { orderItem.OrderId, orderItem.ProductId, orderItem.Id, orderItem.Quantity });
+
+        public Task EditOrderItem(EditOrderItemDataModel orderItemEdit) => _dbAccess.SaveData("sp_OrderItems_EditOrderItem",
+            new { orderItemEdit.Id, orderItemEdit.ProductId, orderItemEdit.OrderId, orderItemEdit.NewQuantity, orderItemEdit.QuantityDifference });
 
         public async Task<int> GetNumberOfOrdersInAGivenMonth()
         {
@@ -27,9 +33,11 @@ namespace DataAccessLibrary.Data
             return OrderCount.FirstOrDefault();
         }
 
-        public Task InsertOrderItems(OrderItemDataModel orderItem) =>
-             _dbAccess.SaveData("sp_OrderItems_Insert", 
-                 new { orderItem.OrderId, orderItem.ProductCode, orderItem.Quantity });
+        public async Task<OrderDataModel> GetOrderByOrderNumber(string orderNumber)
+        {
+            var result = await _dbAccess.LoadData<OrderDataModel, dynamic>("sp_Order_GetOrderByOrderNumber", new { orderNumber });
+            return result.FirstOrDefault();
+        }
 
         public async Task<int> GetOrderIdByOrderNumber(string orderNumber)
         {
@@ -37,13 +45,24 @@ namespace DataAccessLibrary.Data
             return orderIdentifiers.FirstOrDefault();
         }
 
-        public Task MarkOrderItemComplete(string orderNumber, string productCode) =>
-            _dbAccess.SaveData("sp_OrderItems_MarkComplete", new { orderNumber, productCode });
-
-        public async Task<OrderDataModel> GetOrderByOrderNumber(string orderNumber)
+        public async Task<OrderItemDataModel> GetOrderItemByOrderNumberAndProductCode(string orderNumber, string productCode)
         {
-            var result = await _dbAccess.LoadData<OrderDataModel, dynamic>("sp_Order_GetOrderByOrderNumber", new { orderNumber });
+            var result = await _dbAccess.LoadData<OrderItemDataModel, dynamic>("sp_OrderItems_GetOrderItemByOrderNumberAndProductCode", new { orderNumber, productCode });
             return result.FirstOrDefault();
         }
+
+        public async Task<IEnumerable<OrderItemDataModel>> GetOrderItemsByOrderId(int orderId)
+        {
+            return await _dbAccess.LoadData<OrderItemDataModel, dynamic>("sp_OrderItems_GetOrderItemsByOrderId", new { orderId });
+        }
+
+        public Task InsertOrder(OrderDataModel order) => _dbAccess.SaveData("sp_Order_Insert", new { order.OrderSignature, order.OrderNumber });
+
+        public Task InsertOrderItems(OrderItemDataModel orderItem) =>
+             _dbAccess.SaveData("sp_OrderItems_Insert", 
+                 new { orderItem.OrderId, orderItem.ProductCode, orderItem.Quantity });
+
+        public Task MarkOrderItemComplete(string orderNumber, string productCode) =>
+            _dbAccess.SaveData("sp_OrderItems_MarkComplete", new { orderNumber, productCode });
     }
 }

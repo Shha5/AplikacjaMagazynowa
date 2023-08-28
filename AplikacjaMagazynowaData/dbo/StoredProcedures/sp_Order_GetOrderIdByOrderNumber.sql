@@ -3,7 +3,7 @@
 
 AS
 BEGIN
-SET NOCOUNT ON
+	SET NOCOUNT ON
 	SELECT [Order].[Id]
 	FROM [Order]
 	WHERE [Order].[OrderNumber] = @OrderNumber

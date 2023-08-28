@@ -13,12 +13,6 @@ namespace DataAccessLibrary.Data
             _dbAccess = dbAccess;
         }
 
-        public Task InsertProduct(ProductDataModel product) =>
-            _dbAccess.SaveData("sp_Product_Insert", new { product.ProductCode, product.ProductName, product.QuantityInStock });
-
-        public Task InsertProductShipment(ShipmentDataModel shipment) =>
-            _dbAccess.SaveData("sp_Shipment_InsertProductShipment", new { shipment.ProductCode, shipment.Quantity });
-
         public async Task<IEnumerable<ProductDataModel>> GetAllProducts()
         {
             var result = await _dbAccess.LoadData<ProductDataModel, dynamic>("sp_Product_GetAll", null);
@@ -30,5 +24,17 @@ namespace DataAccessLibrary.Data
             var result = await _dbAccess.LoadData<ProductAvailabilityDataModel, dynamic>("sp_Product_GetProductDetailsByProductCode", new { productCode });
             return result.FirstOrDefault();
         }
+
+        public async Task<ProductDataModel> GetProductDetailsByProductId(int productId)
+        {
+            var result = await _dbAccess.LoadData<ProductDataModel, dynamic>("sp_Product_GetProductDetailsById", new { productId });
+            return result.FirstOrDefault();
+        }
+
+        public Task InsertProduct(ProductDataModel product) =>
+          _dbAccess.SaveData("sp_Product_Insert", new { product.ProductCode, product.ProductName, product.QuantityInStock });
+
+        public Task InsertProductShipment(ShipmentDataModel shipment) =>
+            _dbAccess.SaveData("sp_Shipment_InsertProductShipment", new { shipment.ProductCode, shipment.Quantity });
     }
 }

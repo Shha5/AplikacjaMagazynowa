@@ -5,6 +5,10 @@ namespace AplikacjaMagazynowaAPI.Services.Interfaces
 {
     public interface IOrderService
     {
-        Task<OrderResultModel> SaveOrder(List<OrderItemInputModel> orderItems);
+        Task<OrderResultModel> DeleteOrderItem(string orderNumber, string productCode);
+        Task<OrderResultModel> EditOrderItem(EditOrderItemInputModel orderItemEdit);
+        Task<OrderOutputModel> GetOrderByOrderNumber(string orderNumber);
+        Task<OrderResultModel> MarkOrderItemComplete(string orderNumber, string productCode);
+        Task<OrderResultModel> SaveOrder(OrderInputModel order);
     }
 }

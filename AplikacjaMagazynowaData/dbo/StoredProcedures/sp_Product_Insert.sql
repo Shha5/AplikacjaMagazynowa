@@ -4,8 +4,8 @@
 	@QuantityInStock INT
 
 AS
-	IF NOT EXISTS (SELECT 1 FROM [dbo].[Product] WHERE ProductCode = @ProductCode)
-		BEGIN
-			INSERT INTO [dbo].[Product]([ProductCode], [ProductName], [QuantityInStock])
-			VALUES (@ProductCode, @ProductName, @QuantityInStock)
-		END
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Product] WHERE ProductCode = @ProductCode)
+BEGIN
+	INSERT INTO [dbo].[Product]([ProductCode], [ProductName], [QuantityInStock])
+	VALUES (@ProductCode, @ProductName, @QuantityInStock)
+END

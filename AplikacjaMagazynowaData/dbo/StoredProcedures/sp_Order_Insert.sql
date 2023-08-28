@@ -3,8 +3,8 @@
 	@OrderNumber NVARCHAR(50)
 
 AS
-	BEGIN
-		SET NOCOUNT ON
-		INSERT INTO [Order] ([OrderSignature], [OrderNumber], [CreatedDate], [LastModifiedDate])
-		VALUES (@OrderSignature, @OrderNumber, GETUTCDATE(), GETUTCDATE())
-	END
+BEGIN
+	SET NOCOUNT ON
+	INSERT INTO [Order] ([OrderSignature], [OrderNumber], [CreatedDate], [LastModifiedDate])
+	VALUES (@OrderSignature, @OrderNumber, GETUTCDATE(), GETUTCDATE())
+END
