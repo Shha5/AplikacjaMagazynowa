@@ -2,8 +2,6 @@
 using AplikacjaMagazynowaAPI.Models.InputModels;
 using AplikacjaMagazynowaAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace AplikacjaMagazynowaAPI.Controllers
 {

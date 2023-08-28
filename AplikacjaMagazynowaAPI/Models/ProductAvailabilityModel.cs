@@ -1,6 +1,4 @@
-﻿using Microsoft.Identity.Client;
-
-namespace AplikacjaMagazynowaAPI.Models
+﻿namespace AplikacjaMagazynowaAPI.Models
 {
     public class ProductAvailabilityModel
     {

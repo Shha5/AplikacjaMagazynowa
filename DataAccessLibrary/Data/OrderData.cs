@@ -1,6 +1,4 @@
-﻿
-using Azure.Core;
-using DataAccessLibrary.Data.Interfaces;
+﻿using DataAccessLibrary.Data.Interfaces;
 using DataAccessLibrary.Helpers.Interfaces;
 using DataAccessLibrary.Models;
 using DataAccessLibrary.SqlAccess.Interfaces;

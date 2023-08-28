@@ -1,10 +1,6 @@
 ﻿using AplikacjaMagazynowaAPI.Constants;
 using AplikacjaMagazynowaAPI.Models.InputModels;
-using AplikacjaMagazynowaAPI.Models.OutputModels;
-using AplikacjaMagazynowaAPI.Services;
 using AplikacjaMagazynowaAPI.Services.Interfaces;
-using DataAccessLibrary.Data.Interfaces;
-using DataAccessLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AplikacjaMagazynowaAPI.Controllers

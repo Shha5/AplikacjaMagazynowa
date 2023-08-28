@@ -2,10 +2,8 @@
 using AplikacjaMagazynowaAPI.Models.InputModels;
 using AplikacjaMagazynowaAPI.Models.OutputModels;
 using AplikacjaMagazynowaAPI.Services.Interfaces;
-using DataAccessLibrary.Data;
 using DataAccessLibrary.Data.Interfaces;
 using DataAccessLibrary.Models;
-using System.Security.Cryptography.Xml;
 
 namespace AplikacjaMagazynowaAPI.Services
 {

@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace AplikacjaMagazynowaAPI.Constants
+﻿namespace AplikacjaMagazynowaAPI.Constants
 {
     public class ErrorMessages
     {

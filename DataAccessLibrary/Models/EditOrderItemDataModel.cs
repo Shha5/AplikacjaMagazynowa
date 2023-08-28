@@ -1,5 +1,4 @@
-﻿
-namespace DataAccessLibrary.Models
+﻿namespace DataAccessLibrary.Models
 {
     public class EditOrderItemDataModel
     {
