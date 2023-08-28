@@ -30,7 +30,6 @@ namespace DataAccessLibrary.SqlAccess
                 await connection.ExecuteAsync(storedProcedure, parameters,
                 commandType: CommandType.StoredProcedure);
             }
-            
         }
     }
 }

@@ -65,10 +65,23 @@
     <Build Include="dbo\Tables\Product.sql" />
     <Build Include="dbo\Tables\Shipment.sql" />
     <Build Include="dbo\Tables\Order.sql" />
-    <Build Include="dbo\Tables\OrderDetail.sql" />
-    <Build Include="dbo\StoredProcedures\sp_Product_Create.sql" />
+    <Build Include="dbo\Tables\OrderItems.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Product_Insert.sql" />
     <Build Include="dbo\StoredProcedures\sp_Product_GetAll.sql" />
-    <Build Include="dbo\StoredProcedures\sp_Shipment_Product_AddProductShipment.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Shipment_InsertProductShipment.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Product_GetProductDetailsByProductCode.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Order_GetOrderIdByOrderNumber.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Order_GetNumberOfOrdersInAGivenMonth.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Order_Insert.sql" />
+    <Build Include="dbo\StoredProcedures\sp_OrderItems_Insert.sql" />
+    <Build Include="dbo\StoredProcedures\sp_OrderItems_MarkComplete.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Order_GetOrderDetailsByOrderNumber.sql" />
+    <Build Include="dbo\StoredProcedures\sp_OrderItems_GetOrderItemsByOrderId.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Product_GetProductDetailsById.sql" />
+    <Build Include="dbo\StoredProcedures\sp_OrderItems_GetOrderItemByOrderNumberAndProductCode.sql" />
+    <Build Include="dbo\StoredProcedures\sp_OrderItems_EditOrderItem.sql" />
+    <Build Include="dbo\StoredProcedures\sp_OrderItem_DeleteOrderItem.sql" />
+    <Build Include="dbo\StoredProcedures\sp_Order_Delete.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PublishLocations\AplikacjaMagazynowaData.publish.xml" />

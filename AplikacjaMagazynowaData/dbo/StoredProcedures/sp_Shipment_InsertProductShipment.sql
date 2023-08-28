@@ -1,10 +1,10 @@
-﻿CREATE PROCEDURE [dbo].[sp_Shipment_Product_AddProductShipment]
-	@ProductId INT = NULL,
+﻿CREATE PROCEDURE [dbo].[sp_Shipment_InsertProductShipment]
 	@ProductCode NVARCHAR(50),
 	@Quantity INT = 1
 AS
 IF EXISTS (SELECT 1 FROM [Product] WHERE @ProductCode = [Product].[ProductCode])
 BEGIN 
+	DECLARE @ProductId INT
 	SET @ProductId = (SELECT [Product].[Id] FROM [Product] WHERE [Product].[ProductCode] = @ProductCode)
 	
 	UPDATE [Product]
