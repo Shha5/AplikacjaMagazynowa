@@ -16,6 +16,15 @@ namespace AplikacjaMagazynowaAPI.Controllers
             _inventoryService = inventoryService;
         }
 
+        /// <summary>
+        /// Dodawanie do bazy danych nowego produktu o unikalnym kodzie.
+        /// </summary>
+        /// <remarks>
+        /// Jeżeli produkt o danym kodzie istnieje już w bazie produkt nie zostanie dodany.
+        /// Data dodania produktu przypisywana jest przez aplikację.
+        /// </remarks>
+        /// <param name="product"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("nowy-produkt")]
         public async Task<IActionResult> CreateNewProduct(ProductInputModel product)
@@ -32,6 +41,11 @@ namespace AplikacjaMagazynowaAPI.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Służy do zwiększania dostępnej ilości towaru, który został wcześniej dodany do bazy produktów.
+        /// </summary>
+        /// <param name="shipment"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("nowa-dostawa")]
         public async Task<IActionResult> CreateNewProductShipment(ShipmentInputModel shipment)
@@ -48,6 +62,10 @@ namespace AplikacjaMagazynowaAPI.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Przedstawia dostępne w bazie produkty wraz z dostępną ilością.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Route("wszystkie-produkty")]
         public async Task<IActionResult> GetAllProducts()
