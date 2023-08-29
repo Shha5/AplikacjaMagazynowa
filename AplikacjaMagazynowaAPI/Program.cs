@@ -6,6 +6,7 @@ using DataAccessLibrary.Helpers;
 using DataAccessLibrary.Helpers.Interfaces;
 using DataAccessLibrary.SqlAccess;
 using DataAccessLibrary.SqlAccess.Interfaces;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +21,11 @@ builder.Services.AddTransient<IDateTimeHelper, DateTimeHelper>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
+        $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
+});
 
 var app = builder.Build();
 
