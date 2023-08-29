@@ -1,8 +1,14 @@
-﻿namespace AplikacjaMagazynowaAPI.Models.InputModels
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AplikacjaMagazynowaAPI.Models.InputModels
 {
     public class ShipmentInputModel
     {
+        [Required]
+        [MaxLength(50)]
         public string ProductCode { get; set; }
-        public int Quantity { get; set; } = 1;
+
+        [Required]
+        public int Quantity { get; set; }
     }
 }

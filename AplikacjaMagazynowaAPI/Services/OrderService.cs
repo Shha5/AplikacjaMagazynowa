@@ -18,6 +18,39 @@ namespace AplikacjaMagazynowaAPI.Services
             _orderData = orderData;
         }
 
+        public async Task<OrderResultModel> CreateOrder(OrderInputModel order)
+        {
+            var productAvailability = await CheckProductsAvailability(order.Items);
+            if (productAvailability.Any(p => p.IsAvailable == false))
+            {
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.ProductUnavailable
+                };
+            }
+            string orderSignature = await AssignOrderSignature();
+            string orderNumber = Guid.NewGuid().ToString();
+            await _orderData.InsertOrder(new OrderDataModel { OrderSignature = orderSignature, OrderNumber = orderNumber });
+            int orderId = await _orderData.GetOrderIdByOrderNumber(orderNumber);
+            await SaveOrderItems(order.Items, orderId);
+            if (await GetOrderItems(orderId) == null)
+            {
+                await _orderData.DeleteOrder(orderId);
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.UnexpectedServerError
+                };
+            }
+            return new OrderResultModel()
+            {
+                Success = true,
+                OrderNumber = orderNumber,
+                OrderSignature = orderSignature
+            };
+        }
+
         public async Task<OrderResultModel> DeleteOrderItem(string orderNumber, string productCode)
         {
             var orderItem = await _orderData.GetOrderItemByOrderNumberAndProductCode(orderNumber, productCode);
@@ -99,7 +132,7 @@ namespace AplikacjaMagazynowaAPI.Services
         public async Task<OrderOutputModel> GetOrderByOrderNumber(string orderNumber)
         {
             var orderData = await _orderData.GetOrderByOrderNumber(orderNumber);
-            if (orderData == null) 
+            if (orderData == null || orderData.Id == null) 
             {
                 return null;
             }
@@ -115,7 +148,8 @@ namespace AplikacjaMagazynowaAPI.Services
 
         public async Task<OrderResultModel> MarkOrderItemComplete(string orderNumber, string productCode)
         {
-            if (await _orderData.GetOrderItemByOrderNumberAndProductCode(orderNumber, productCode) == null)
+            var orderItem = await _orderData.GetOrderItemByOrderNumberAndProductCode(orderNumber, productCode);
+            if (orderItem == null)
             {
                 return new OrderResultModel()
                 {
@@ -123,43 +157,18 @@ namespace AplikacjaMagazynowaAPI.Services
                     Error = ErrorMessages.OrderItemDoesNotExist
                 };
             }
+            if (orderItem.ItemCompleted == true)
+            {
+                return new OrderResultModel()
+                {
+                    Success = false,
+                    Error = ErrorMessages.NoChangeInData
+                };
+            }
             await _orderData.MarkOrderItemComplete(orderNumber, productCode);
             return new OrderResultModel()
             {
                 Success = true
-            };
-        }
-
-        public async Task<OrderResultModel> SaveOrder(OrderInputModel order)
-        {
-            var productAvailability = await CheckProductsAvailability(order.Items);
-            if (productAvailability.Any(p => p.IsAvailable == false))
-            {
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.ProductUnavailable
-                };
-            }
-            string orderSignature = await AssignOrderSignature();
-            string orderNumber = Guid.NewGuid().ToString();
-            await _orderData.InsertOrder(new OrderDataModel { OrderSignature = orderSignature, OrderNumber = orderNumber });
-            int orderId = await _orderData.GetOrderIdByOrderNumber(orderNumber);
-            await SaveOrderItems(order.Items, orderId);
-            if (await GetOrderItems(orderId) == null)
-            {
-                await _orderData.DeleteOrder(orderId);
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.UnexpectedServerError
-                };
-            }
-            return new OrderResultModel()
-            {
-                Success = true,
-                OrderNumber = orderNumber,
-                OrderSignature = orderSignature
             };
         }
 
@@ -213,6 +222,10 @@ namespace AplikacjaMagazynowaAPI.Services
         private async Task<List<OrderItemOutputModel>> GetOrderItems(int orderId)
         {
             var orderItemData = await _orderData.GetOrderItemsByOrderId(orderId);
+            if (orderItemData == null)
+            {
+                return null;
+            }
             List<OrderItemOutputModel> orderItems = new List<OrderItemOutputModel>();
             foreach (var item in orderItemData)
             {

@@ -1,4 +1,6 @@
-﻿namespace AplikacjaMagazynowaAPI.Models.OutputModels
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AplikacjaMagazynowaAPI.Models.OutputModels
 {
     public class ProductOutputModel
     {
