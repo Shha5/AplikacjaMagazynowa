@@ -16,29 +16,7 @@ namespace AplikacjaMagazynowaAPI.Services
             _productData = productData;
         }
 
-        public async Task<List<ProductOutputModel>> GetAllProducts()
-        {
-            List<ProductOutputModel> products = new List<ProductOutputModel>();
-            var result = await _productData.GetAllProducts();
-            if (result != null)
-            {
-                foreach (var product in result)
-                {
-                    products.Add(new ProductOutputModel
-                    {
-                        Id = product.Id,
-                        ProductCode = product.ProductCode,
-                        ProductName = product.ProductName,
-                        QuantityInStock = product.QuantityInStock,
-                        CreatedDate = product.CreatedDate,
-                        LastModifiedDate = product.LastModifiedDate
-                    });
-                }
-            }
-            return products;
-        }
-
-        public async Task<InventoryResultModel> SaveNewProduct(ProductInputModel product)
+        public async Task<InventoryResultModel> CreateNewProduct(ProductInputModel product)
         {
             if (product.QuantityInStock < 0)
             {
@@ -69,7 +47,7 @@ namespace AplikacjaMagazynowaAPI.Services
             };
         }
 
-        public async Task<InventoryResultModel> SaveNewProductShipment(ShipmentInputModel shipment)
+        public async Task<InventoryResultModel> CreateNewProductShipment(ShipmentInputModel shipment)
         {
             if (shipment.Quantity <= 0)
             {
@@ -97,6 +75,28 @@ namespace AplikacjaMagazynowaAPI.Services
             {
                 Success = true
             };
+        }
+
+        public async Task<List<ProductOutputModel>> GetAllProducts()
+        {
+            List<ProductOutputModel> products = new List<ProductOutputModel>();
+            var result = await _productData.GetAllProducts();
+            if (result != null && result.Count() > 0)
+            {
+                foreach (var product in result)
+                {
+                    products.Add(new ProductOutputModel
+                    {
+                        Id = product.Id,
+                        ProductCode = product.ProductCode,
+                        ProductName = product.ProductName,
+                        QuantityInStock = product.QuantityInStock,
+                        CreatedDate = product.CreatedDate,
+                        LastModifiedDate = product.LastModifiedDate
+                    });
+                }
+            }
+            return products;
         }
 
         private async Task<bool> CheckIfProductExists(string productCode)

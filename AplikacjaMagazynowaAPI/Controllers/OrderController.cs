@@ -2,6 +2,7 @@
 using AplikacjaMagazynowaAPI.Models.InputModels;
 using AplikacjaMagazynowaAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace AplikacjaMagazynowaAPI.Controllers
 {
@@ -24,7 +25,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
             {
                 return BadRequest("Dane są niekompletne");
             }
-            var result = await _orderService.SaveOrder(order);
+            var result = await _orderService.CreateOrder(order);
             if (result.Success != true)
             {
                 return BadRequest(result.Error);
@@ -36,7 +37,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
         [Route("usun-pozycje-z-zamowienia")]
         public async Task<IActionResult> DeleteOrderItem(string orderNumber, string productCode)
         {
-            if (ModelState.IsValid != true)
+            if (string.IsNullOrEmpty(orderNumber) || string.IsNullOrEmpty(productCode))
             {
                 return BadRequest(ErrorMessages.DataIncomplete);
             }
@@ -70,7 +71,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
 
         [HttpGet]
         [Route("szczegoly-zamowienia")]
-        public async Task<IActionResult> GetOrderByOrderNumber(string orderNumber)
+        public async Task<IActionResult> GetOrderByOrderNumber([Required] string orderNumber)
         {
             if (string.IsNullOrEmpty(orderNumber))
             {

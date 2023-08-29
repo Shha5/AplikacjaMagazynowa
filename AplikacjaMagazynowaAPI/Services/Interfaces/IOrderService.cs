@@ -9,6 +9,6 @@ namespace AplikacjaMagazynowaAPI.Services.Interfaces
         Task<OrderResultModel> EditOrderItem(EditOrderItemInputModel orderItemEdit);
         Task<OrderOutputModel> GetOrderByOrderNumber(string orderNumber);
         Task<OrderResultModel> MarkOrderItemComplete(string orderNumber, string productCode);
-        Task<OrderResultModel> SaveOrder(OrderInputModel order);
+        Task<OrderResultModel> CreateOrder(OrderInputModel order);
     }
 }

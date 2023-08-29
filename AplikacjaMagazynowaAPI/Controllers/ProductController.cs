@@ -24,7 +24,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
             {
                 return BadRequest(ErrorMessages.DataIncomplete);
             }
-            var result = await _inventoryService.SaveNewProduct(product);
+            var result = await _inventoryService.CreateNewProduct(product);
             if (result.Success != true)
             {
                 return BadRequest(result.Error);
@@ -40,7 +40,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
             {
                 return BadRequest(ErrorMessages.DataIncomplete);
             }
-            var result = await _inventoryService.SaveNewProductShipment(shipment);
+            var result = await _inventoryService.CreateNewProductShipment(shipment);
             if (result.Success != true)
             {
                 return BadRequest(result.Error);
