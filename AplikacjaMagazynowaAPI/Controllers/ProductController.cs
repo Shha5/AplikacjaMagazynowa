@@ -29,7 +29,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
         [Route("nowy-produkt")]
         public async Task<IActionResult> CreateNewProduct(ProductInputModel product)
         {
-            if (ModelState.IsValid != true)
+            if (ModelState.IsValid != true || string.IsNullOrWhiteSpace(product.ProductCode) == true || string.IsNullOrWhiteSpace(product.ProductName) == true)
             {
                 return BadRequest(ErrorMessages.DataIncomplete);
             }
@@ -50,7 +50,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
         [Route("nowa-dostawa")]
         public async Task<IActionResult> CreateNewProductShipment(ShipmentInputModel shipment)
         {
-            if (ModelState.IsValid != true) 
+            if (ModelState.IsValid != true || string.IsNullOrWhiteSpace(shipment.ProductCode) == true) 
             {
                 return BadRequest(ErrorMessages.DataIncomplete);
             }

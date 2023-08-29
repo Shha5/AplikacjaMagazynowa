@@ -53,7 +53,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
         [Route("usun-pozycje-z-zamowienia")]
         public async Task<IActionResult> DeleteOrderItem(string orderNumber, string productCode)
         {
-            if (string.IsNullOrEmpty(orderNumber) || string.IsNullOrEmpty(productCode))
+            if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(productCode))
             {
                 return BadRequest(ErrorMessages.DataIncomplete);
             }
@@ -103,7 +103,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
         [Route("szczegoly-zamowienia")]
         public async Task<IActionResult> GetOrderByOrderNumber(string orderNumber)
         {
-            if (string.IsNullOrEmpty(orderNumber))
+            if (string.IsNullOrWhiteSpace(orderNumber))
             {
                 return BadRequest(ErrorMessages.DataIncomplete);
             }
@@ -128,7 +128,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
         [Route("oznacz-pozycje-zrealizowana")]
         public async Task<IActionResult> MarkOrderItemComplete(string orderNumber, string productCode)
         {
-            if (string.IsNullOrEmpty(orderNumber) || string.IsNullOrEmpty(productCode)) 
+            if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(productCode)) 
             {
                 return BadRequest(ErrorMessages.DataIncomplete);
             }
