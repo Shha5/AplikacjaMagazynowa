@@ -20,11 +20,7 @@ namespace AplikacjaMagazynowaAPI.Services
         {
             if (product.QuantityInStock < 0)
             {
-                return new InventoryResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.BadQuantity
-                };
+                return GenerateUnsuccessfulInventoryResult(ErrorMessages.BadQuantity);
             }
             ProductDataModel productData = new ProductDataModel()
             {
@@ -34,36 +30,21 @@ namespace AplikacjaMagazynowaAPI.Services
             };
             if (await CheckIfProductExists(productData.ProductCode) == true)
             {
-                return new InventoryResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.ProductExistsInDb
-                };
+                return GenerateUnsuccessfulInventoryResult(ErrorMessages.ProductExistsInDb);
             }
             await _productData.InsertProduct(productData);
-            return new InventoryResultModel()
-            {
-                Success = true
-            };
+            return GenerateSuccessfulInventoryResult();
         }
 
         public async Task<InventoryResultModel> CreateNewProductShipment(ShipmentInputModel shipment)
         {
             if (shipment.Quantity <= 0)
             {
-                return new InventoryResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.BadQuantity
-                };
+                return GenerateUnsuccessfulInventoryResult(ErrorMessages.BadQuantity);
             }
             if (await CheckIfProductExists(shipment.ProductCode) == false)
             {
-                return new InventoryResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.ProductUnavailable
-                };
+                return GenerateUnsuccessfulInventoryResult(ErrorMessages.ProductUnavailable);
             }
             ShipmentDataModel shipmentData = new ShipmentDataModel()
             {
@@ -71,10 +52,7 @@ namespace AplikacjaMagazynowaAPI.Services
                 Quantity = shipment.Quantity,
             };
             await _productData.InsertProductShipment(shipmentData);
-            return new InventoryResultModel()
-            {
-                Success = true
-            };
+            return GenerateSuccessfulInventoryResult();
         }
 
         public async Task<List<ProductOutputModel>> GetAllProducts()
@@ -107,6 +85,23 @@ namespace AplikacjaMagazynowaAPI.Services
                 return true;
             }
             return false;
+        }
+
+        private InventoryResultModel GenerateSuccessfulInventoryResult()
+        {
+            return new InventoryResultModel()
+            {
+                Success = true
+            };
+        }
+
+        private InventoryResultModel GenerateUnsuccessfulInventoryResult(string ErrorMessage)
+        {
+            return new InventoryResultModel()
+            {
+                Success = false,
+                Error = ErrorMessage
+            };
         }
     }
 }

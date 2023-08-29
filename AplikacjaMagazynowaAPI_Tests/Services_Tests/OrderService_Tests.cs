@@ -54,6 +54,7 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
         [Test]
         public async Task CreateOrder_ProductsAvailableItemsSuccessfullySaved_ReturnsSuccessTrueAndOrderIdentifiers()
         {
+            // ARRANGE
             var stubOrder = AutoMock.Mock<OrderInputModel>().SetupAllProperties();
             stubOrder.Object.Items = validStubOrderItemInputList;
             var stubProductAvailabilityData = StubsHelper.GenerateStubAvailabilityData();

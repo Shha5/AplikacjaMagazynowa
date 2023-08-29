@@ -5,6 +5,7 @@ using AplikacjaMagazynowaAPI.Models.OutputModels;
 using AplikacjaMagazynowaAPI.Services.Interfaces;
 using DataAccessLibrary.Data.Interfaces;
 using DataAccessLibrary.Models;
+using System.Data;
 
 namespace AplikacjaMagazynowaAPI.Services
 {
@@ -23,11 +24,7 @@ namespace AplikacjaMagazynowaAPI.Services
             var productAvailability = await CheckProductsAvailability(order.Items);
             if (productAvailability.Any(p => p.IsAvailable == false))
             {
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.ProductUnavailable
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.ProductUnavailable);
             }
             string orderSignature = await AssignOrderSignature();
             string orderNumber = Guid.NewGuid().ToString();
@@ -37,11 +34,7 @@ namespace AplikacjaMagazynowaAPI.Services
             if (await GetOrderItems(orderId) == null)
             {
                 await _orderData.DeleteOrder(orderId);
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.UnexpectedServerError
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.UnexpectedServerError);
             }
             return new OrderResultModel()
             {
@@ -56,25 +49,14 @@ namespace AplikacjaMagazynowaAPI.Services
             var orderItem = await _orderData.GetOrderItemByOrderNumberAndProductCode(orderNumber, productCode);
             if (orderItem == null)
             {
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.OrderItemDoesNotExist
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.OrderItemDoesNotExist);
             }
             if (orderItem.ItemCompleted == true)
             {
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.CannotEditComplete
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.CannotEditComplete); 
             }
             await _orderData.DeleteOrderItem(orderItem);
-            return new OrderResultModel()
-            {
-                Success = true
-            };
+            return GenerateEmptySuccessfulOrderResult();
         }
 
         public async Task<OrderResultModel> EditOrderItem(EditOrderItemInputModel orderItemEdit)
@@ -83,36 +65,20 @@ namespace AplikacjaMagazynowaAPI.Services
 
             if (orderItem == null)
             {
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.OrderItemDoesNotExist
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.OrderItemDoesNotExist);     
             }
             if (orderItem.ItemCompleted == true)
             {
-                return new OrderResultModel
-                {
-                    Success = false,
-                    Error = ErrorMessages.CannotEditComplete
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.CannotEditComplete);
             }
             if (orderItem.Quantity == orderItemEdit.NewQuantity)
             {
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.NoChangeInData
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.NoChangeInData);
             }
             var productData = await _productData.GetProductDetailsByProductId(orderItem.ProductId);
             if ((productData.QuantityInStock + orderItem.Quantity) < orderItemEdit.NewQuantity)
             {
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.ProductUnavailable
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.ProductUnavailable);
             }
             EditOrderItemDataModel orderItemEditData = new EditOrderItemDataModel()
             {
@@ -123,16 +89,13 @@ namespace AplikacjaMagazynowaAPI.Services
                 QuantityDifference = orderItem.Quantity - orderItemEdit.NewQuantity
             };
             await _orderData.EditOrderItem(orderItemEditData);
-            return new OrderResultModel()
-            {
-                Success = true
-            };
+            return GenerateEmptySuccessfulOrderResult();
         }
 
         public async Task<OrderOutputModel> GetOrderByOrderNumber(string orderNumber)
         {
             var orderData = await _orderData.GetOrderByOrderNumber(orderNumber);
-            if (orderData == null || orderData.Id == null) 
+            if (orderData == null || orderData.Id == 0) 
             {
                 return null;
             }
@@ -151,25 +114,14 @@ namespace AplikacjaMagazynowaAPI.Services
             var orderItem = await _orderData.GetOrderItemByOrderNumberAndProductCode(orderNumber, productCode);
             if (orderItem == null)
             {
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.OrderItemDoesNotExist
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.OrderItemDoesNotExist);
             }
             if (orderItem.ItemCompleted == true)
             {
-                return new OrderResultModel()
-                {
-                    Success = false,
-                    Error = ErrorMessages.NoChangeInData
-                };
+                return GenerateUnsuccessfulOrderResult(ErrorMessages.NoChangeInData);
             }
             await _orderData.MarkOrderItemComplete(orderNumber, productCode);
-            return new OrderResultModel()
-            {
-                Success = true
-            };
+            return GenerateEmptySuccessfulOrderResult();
         }
 
         private async Task<string> AssignOrderSignature()
@@ -219,6 +171,23 @@ namespace AplikacjaMagazynowaAPI.Services
             return result;
         }
 
+        private OrderResultModel GenerateEmptySuccessfulOrderResult()
+        {
+            return new OrderResultModel()
+            {
+                Success = true
+            };
+        }
+
+        private OrderResultModel GenerateUnsuccessfulOrderResult(string ErrorMessage)
+        {
+            return new OrderResultModel()
+            {
+                Success = false,
+                Error = ErrorMessage
+            };
+        }
+
         private async Task<List<OrderItemOutputModel>> GetOrderItems(int orderId)
         {
             var orderItemData = await _orderData.GetOrderItemsByOrderId(orderId);
@@ -241,7 +210,7 @@ namespace AplikacjaMagazynowaAPI.Services
             }
             return orderItems;
         }
-       
+
         private async Task SaveOrderItems(List<OrderItemInputModel> orderItems, int orderId)
         {
             foreach (var item in orderItems)
