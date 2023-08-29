@@ -57,8 +57,8 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
             var stubOrder = AutoMock.Mock<OrderInputModel>().SetupAllProperties();
             stubOrder.Object.Items = validStubOrderItemInputList;
             var stubProductAvailabilityData = StubsHelper.GenerateStubAvailabilityData();
-            var stubProductData = StubsHelper.GenerateValidStubProductData();
-            var stubOrderItemsData = StubsHelper.GenerateStubOrderItemDataList();
+            var stubProductData = StubsHelper.GenerateStubValidProductData();
+            var stubOrderItemsData = StubsHelper.GenerateStubOrderItemDataIEnum();
             var mockProductData = AutoMock.Mock<IProductData>();
             mockProductData.Setup(p => p.GetProductDetailsByProductCode(It.IsAny<string>())).ReturnsAsync(stubProductAvailabilityData);
             mockProductData.Setup(p => p.GetProductDetailsByProductId(It.IsAny<int>())).ReturnsAsync(stubProductData);
@@ -122,6 +122,20 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
         }
 
         [Test]
+        public async Task DeleteOrderItem_OrderItemExistsAndIsNotCompleted_ReturnsSuccessTrue()
+        {
+            var stubOrderItemNotCompleted = StubsHelper.GenerateStubOrderItemData(false);
+            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(stubOrderItemNotCompleted);
+
+            var result = await SystemUnderTest.DeleteOrderItem(stubOrderNumber, stubProductCode);
+
+            result.ShouldBeOfType<OrderResultModel>();
+            result.Success.ShouldBeTrue();
+            result.Error.ShouldBeNullOrEmpty();
+        }
+
+        [Test]
         public async Task DeleteOrderItem_OrderItemIsCompleted_ReturnsSuccessFalseAndErrorMessage()
         {
             var stubOrderItemCompleted = StubsHelper.GenerateStubOrderItemData(true);
@@ -137,17 +151,70 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
         }
 
         [Test]
-        public async Task DeleteOrderItem_OrderItemExistsAndIsNotCompleted_ReturnsSuccessTrue()
+        public async Task EditOrderItem_NewItemQuantityIsMoreThanInStock_ReturnsSuccessFalseAndErrorMessage()
         {
+            // ARRANGE
             var stubOrderItemNotCompleted = StubsHelper.GenerateStubOrderItemData(false);
-            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(stubOrderItemNotCompleted);
+            var stubProductData = StubsHelper.GenerateStubValidProductData();
+            var invalidQuantityStubOrderItemEdit = AutoMock.Mock<EditOrderItemInputModel>().SetupAllProperties();
+            invalidQuantityStubOrderItemEdit.Object.ProductCode = StubsHelper.GenerateRandomString();
+            invalidQuantityStubOrderItemEdit.Object.OrderNumber = Guid.NewGuid().ToString();
+            invalidQuantityStubOrderItemEdit.Object.NewQuantity = (stubProductData.QuantityInStock + random.Next(11, 21));
 
-            var result = await SystemUnderTest.DeleteOrderItem(stubOrderNumber, stubProductCode);
+            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>())).
+                ReturnsAsync(stubOrderItemNotCompleted);
+            var mockProductData = AutoMock.Mock<IProductData>().Setup(p => p.GetProductDetailsByProductId(It.IsAny<int>())).
+                ReturnsAsync(stubProductData);
 
+            // ACT
+            var result = await SystemUnderTest.EditOrderItem(invalidQuantityStubOrderItemEdit.Object);
+
+            // ASSERT
+            result.ShouldBeOfType<OrderResultModel>();
+            result.Success.ShouldBeFalse();
+            result.Error.ShouldNotBeNullOrEmpty();
+            result.Error.ShouldContain(ErrorMessages.ProductUnavailable);
+        }
+
+        [Test]
+        public async Task EditOrderItem_NewItemQuantityGoodAndOrderItemExistsAndIsNotCompleted_ReturnsSuccessTrue()
+        {
+            // ARRANGE
+            var stubOrderItemNotCompleted = StubsHelper.GenerateStubOrderItemData(false);
+            var stubProductData = StubsHelper.GenerateStubValidProductData();
+
+            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>())).
+                ReturnsAsync(stubOrderItemNotCompleted);
+            var mockProductData = AutoMock.Mock<IProductData>().Setup(p => p.GetProductDetailsByProductId(It.IsAny<int>())).
+                ReturnsAsync(stubProductData);
+
+            // ACT
+            var result = await SystemUnderTest.EditOrderItem(validStubOrderItemEditInput);
+
+            // ASSERT
             result.ShouldBeOfType<OrderResultModel>();
             result.Success.ShouldBeTrue();
             result.Error.ShouldBeNullOrEmpty();
+        }
+
+        [Test]
+        public async Task EditOrderItem_NewItemQuantityIsTheSameAsExisting_ReturnsSuccessFalseAndErrorMessage()
+        {
+            var stubOrderItemNotCompleted = StubsHelper.GenerateStubOrderItemData(false);
+            var invalidQuantityStubOrderItemEdit = AutoMock.Mock<EditOrderItemInputModel>().SetupAllProperties();
+            invalidQuantityStubOrderItemEdit.Object.ProductCode = StubsHelper.GenerateRandomString();
+            invalidQuantityStubOrderItemEdit.Object.OrderNumber = Guid.NewGuid().ToString();
+            invalidQuantityStubOrderItemEdit.Object.NewQuantity = stubOrderItemNotCompleted.Quantity;
+
+            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>())).
+                ReturnsAsync(stubOrderItemNotCompleted);
+
+            var result = await SystemUnderTest.EditOrderItem(invalidQuantityStubOrderItemEdit.Object);
+
+            result.ShouldBeOfType<OrderResultModel>();
+            result.Success.ShouldBeFalse();
+            result.Error.ShouldNotBeNullOrEmpty();
+            result.Error.ShouldContain(ErrorMessages.NoChangeInData);
         }
 
         [Test]
@@ -180,73 +247,6 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
         }
 
         [Test]
-        public async Task EditOrderItem_NewItemQuantityIsTheSameAsExisting_ReturnsSuccessFalseAndErrorMessage()
-        {
-            var stubOrderItemNotCompleted = StubsHelper.GenerateStubOrderItemData(false);
-            var invalidQuantityStubOrderItemEdit = AutoMock.Mock<EditOrderItemInputModel>().SetupAllProperties();
-            invalidQuantityStubOrderItemEdit.Object.ProductCode = StubsHelper.GenerateRandomString();
-            invalidQuantityStubOrderItemEdit.Object.OrderNumber = Guid.NewGuid().ToString();
-            invalidQuantityStubOrderItemEdit.Object.NewQuantity = stubOrderItemNotCompleted.Quantity;
-
-            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>())).
-                ReturnsAsync(stubOrderItemNotCompleted);
-
-            var result = await SystemUnderTest.EditOrderItem(invalidQuantityStubOrderItemEdit.Object);
-
-            result.ShouldBeOfType<OrderResultModel>();
-            result.Success.ShouldBeFalse();
-            result.Error.ShouldNotBeNullOrEmpty();
-            result.Error.ShouldContain(ErrorMessages.NoChangeInData);
-        }
-
-        [Test]
-        public async Task EditOrderItem_NewItemQuantityIsMoreThanInStock_ReturnsSuccessFalseAndErrorMessage()
-        {
-            // ARRANGE
-            var stubOrderItemNotCompleted = StubsHelper.GenerateStubOrderItemData(false);
-            var stubProductData = StubsHelper.GenerateValidStubProductData();
-            var invalidQuantityStubOrderItemEdit = AutoMock.Mock<EditOrderItemInputModel>().SetupAllProperties();
-            invalidQuantityStubOrderItemEdit.Object.ProductCode = StubsHelper.GenerateRandomString();
-            invalidQuantityStubOrderItemEdit.Object.OrderNumber = Guid.NewGuid().ToString();
-            invalidQuantityStubOrderItemEdit.Object.NewQuantity = (stubProductData.QuantityInStock + random.Next(11, 21));
-            
-            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>())).
-                ReturnsAsync(stubOrderItemNotCompleted);
-            var mockProductData = AutoMock.Mock<IProductData>().Setup(p => p.GetProductDetailsByProductId(It.IsAny<int>())).
-                ReturnsAsync(stubProductData);
-
-            // ACT
-            var result = await SystemUnderTest.EditOrderItem(invalidQuantityStubOrderItemEdit.Object);
-
-            // ASSERT
-            result.ShouldBeOfType<OrderResultModel>();
-            result.Success.ShouldBeFalse();
-            result.Error.ShouldNotBeNullOrEmpty();
-            result.Error.ShouldContain(ErrorMessages.ProductUnavailable);
-        }
-
-        [Test]
-        public async Task EditOrderItem_NewItemQuantityGoodAndOrderItemExistsAndIsNotCompleted_ReturnsSuccessTrue()
-        {
-            // ARRANGE
-            var stubOrderItemNotCompleted = StubsHelper.GenerateStubOrderItemData(false);
-            var stubProductData = StubsHelper.GenerateValidStubProductData();
-
-            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>())).
-                ReturnsAsync(stubOrderItemNotCompleted);
-            var mockProductData = AutoMock.Mock<IProductData>().Setup(p => p.GetProductDetailsByProductId(It.IsAny<int>())).
-                ReturnsAsync(stubProductData);
-
-            // ACT
-            var result = await SystemUnderTest.EditOrderItem(validStubOrderItemEditInput);
-
-            // ASSERT
-            result.ShouldBeOfType<OrderResultModel>();
-            result.Success.ShouldBeTrue();
-            result.Error.ShouldBeNullOrEmpty();
-        }
-
-        [Test]
         public async Task GetOrderByOrderNumber_OrderDoesNotExist_ReturnsNull()
         {
             var mockOrderData = AutoMock.Mock<IOrderData>();
@@ -262,8 +262,8 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
         {
             // ARRANGE
             var stubOrderData = StubsHelper.GenerateStubOrderData();
-            var stubOrderItemsData = StubsHelper.GenerateStubOrderItemDataList();
-            var stubProductData = StubsHelper.GenerateValidStubProductData();
+            var stubOrderItemsData = StubsHelper.GenerateStubOrderItemDataIEnum();
+            var stubProductData = StubsHelper.GenerateStubValidProductData();
             var mockOrderData = AutoMock.Mock<IOrderData>();
             mockOrderData.Setup(o => o.GetOrderByOrderNumber(It.IsAny<string>())).ReturnsAsync(stubOrderData);
             mockOrderData.Setup(o => o.GetOrderItemsByOrderId(It.IsAny<int>())).ReturnsAsync(stubOrderItemsData);
@@ -293,6 +293,20 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
         }
 
         [Test]
+        public async Task MarkOrderItemComplete_OrderItemExistsAndIsNotCompleted_ReturnsSuccessTrue()
+        {
+            var stubOrderItemData = StubsHelper.GenerateStubOrderItemData(false);
+            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(stubOrderItemData);
+
+            var result = await SystemUnderTest.MarkOrderItemComplete(stubOrderNumber, stubProductCode);
+
+            result.ShouldNotBeNull();
+            result.ShouldBeOfType<OrderResultModel>();
+            result.Success.ShouldBeTrue();
+            result.Error.ShouldBeNullOrEmpty();
+        }
+
+        [Test]
         public async Task MarkOrderItemComplete_OrderItemIsCompleted_ReturnsSuccessFalseAndErrorMessage()
         {
             var stubOrderItemData = StubsHelper.GenerateStubOrderItemData(true);
@@ -305,20 +319,6 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
             result.Success.ShouldBeFalse();
             result.Error.ShouldNotBeNullOrEmpty();
             result.Error.ShouldContain(ErrorMessages.NoChangeInData);
-        }
-
-        [Test]
-        public async Task MarkOrderItemComplete_OrderItemExistsAndIsNotCompleted_ReturnsSuccessTrue()
-        {
-            var stubOrderItemData = StubsHelper.GenerateStubOrderItemData(false);
-            var mockOrderData = AutoMock.Mock<IOrderData>().Setup(o => o.GetOrderItemByOrderNumberAndProductCode(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(stubOrderItemData);
-
-            var result = await SystemUnderTest.MarkOrderItemComplete(stubOrderNumber, stubProductCode);
-
-            result.ShouldNotBeNull();
-            result.ShouldBeOfType<OrderResultModel>();
-            result.Success.ShouldBeTrue();
-            result.Error.ShouldBeNullOrEmpty();
         }
     }
 }

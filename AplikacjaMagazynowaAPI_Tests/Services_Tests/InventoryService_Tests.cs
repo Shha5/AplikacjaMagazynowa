@@ -80,7 +80,7 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
         }
 
         [Test]
-        public async Task CreateNewProduct_ProductExistsQuantityPositive_ReturnsSuccessFalseAndErrorMessage()
+        public async Task CreateNewProductShipment_ProductExistsQuantityPositive_ReturnsSuccessFalseAndErrorMessage()
         {
             var mockProductData = AutoMock.Mock<IProductData>().Setup(p => p.GetProductDetailsByProductCode(It.IsAny<string>()))
                 .ReturnsAsync(stubProductExistsResult);
@@ -107,7 +107,7 @@ namespace AplikacjaMagazynowaAPI_Tests.Services_Tests
         [Test]
         public async Task GetAllProducts_ProductDataReturnsData_ReturnsListOfProductOutputModel()
         {
-            var stubValidResult = StubsHelper.GenerateValidStubProductDataList();
+            var stubValidResult = StubsHelper.GenerateStubValidProductDataIEnum();
             var mockProductData = AutoMock.Mock<IProductData>().Setup(p => p.GetAllProducts())
                 .ReturnsAsync(stubValidResult);
 

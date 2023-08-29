@@ -83,7 +83,7 @@ namespace AplikacjaMagazynowaAPI_Tests.Controllers_Tests
         [Test]
         public async Task GetAllProducts_ProductsWereFound_ReturnsOk()
         {
-            var validProductOutputStub = StubsHelper.GenerateValidStubProductOutputList();
+            var validProductOutputStub = StubsHelper.GenerateStubValidProductOutputList();
             var mockInventoryService = AutoMock.Mock<IInventoryService>().Setup(x => x.GetAllProducts())
               .ReturnsAsync(validProductOutputStub);
 

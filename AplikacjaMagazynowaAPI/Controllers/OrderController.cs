@@ -71,7 +71,7 @@ namespace AplikacjaMagazynowaAPI.Controllers
 
         [HttpGet]
         [Route("szczegoly-zamowienia")]
-        public async Task<IActionResult> GetOrderByOrderNumber([Required] string orderNumber)
+        public async Task<IActionResult> GetOrderByOrderNumber(string orderNumber)
         {
             if (string.IsNullOrEmpty(orderNumber))
             {
